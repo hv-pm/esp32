@@ -4,6 +4,13 @@
 
 //PLACA: ESP32 DEV MODULE
 
+//MODULO SD PINOUT
+//MISO -> D19
+//SCK -> D18
+//MOSI -> D23
+//CS -> D5
+//3.3V
+
 #include <SPI.h>
 #include "SdFat.h"
 
