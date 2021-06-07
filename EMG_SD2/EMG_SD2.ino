@@ -92,13 +92,13 @@ void setup() {
 }
 
 void loop() {
-  String linha = String(i) + "," + String(analogRead(25)) + "," + String(analogRead(26));
+  String linha = String(i) + "," + String(float(analogRead(25))) + "," + String(float(analogRead(26)));
   file.println(linha);
   if (Serial.available()) {
     file.close();
     Serial.println(F("Done"));
     SysCall::halt();
   }
-  delay(1); //1 sample por 1 ms -> 1000 samples por 1 segundo, para 2kHz -> 0.5ms, recomenda-se usar delayMicroseconds(500), pois delay() não reconhece um valor menor que 1ms.
+  delayMicroseconds(780); //1000 samples por segundo, para 2kHz -> delayMicroseconds(293)
   i++;
 }
