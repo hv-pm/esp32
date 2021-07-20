@@ -1,9 +1,9 @@
 /*
- * Adapted from sdfat library example "dataLogger"
    Simple data logger.
+   * Adapted from sdfat library example "dataLogger"
 */
 
-//Board: ESP32 DEV MODULE
+//PLACA: ESP32 DEV MODULE
 
 #include <SPI.h>
 #include "SdFat.h"
@@ -21,6 +21,9 @@ SdFat sd;
 SdFile file;
 
 int i = 0;
+int l = 0;
+int cont = 0;
+int prevmili = 0;
 //==============================================================================
 // User functions.  Edit writeHeader() and logData() for your requirements.
 
@@ -29,6 +32,7 @@ const uint8_t ANALOG_COUNT = 1; //número de colunas header após a primeira (CH
 // Write data header.
 void writeHeader() {
   file.print(F("micros")); //primeira coluna
+  file.print(F(",label")); //primeira coluna
   for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
     file.print(F(",CHN"));
     file.print(i, DEC);
@@ -90,19 +94,41 @@ void setup() {
 
   // Write data header.
   writeHeader();
+
+  //------------------------------------------------------------------------------
+  pinMode(2, OUTPUT);
+  delay(10000); //espera 10 segundos
+  digitalWrite(2, HIGH); //liga onboard led para iniciar protocolo
+  delay(7000); // espera 7 segundos antes de começar a gravar os dados
+  digitalWrite(2, LOW); //desliga led
+  prevmili = millis();
 }
 
 void loop() {
   //((ADC_VALUE * 3.3 ) / (4095)) / (10050)) -> 3.3V: output; 4095: 10 bits resolution; 10050: (G = 201 * Rgain / 1k), Rgain=50k ohm.
   // ( (3.3) / (4095) ) / (10050) = 8.018515481e-8.
-  String linha = String(i) + ","; 
+  String linha = String(i) + "," + String(l) + ",";
   file.print(linha);
-  file.println(double(analogRead(32)*8.018515481e-8),12);
+  file.println(double(analogRead(32) * 4.009257741e-8), 16);
   if (Serial.available()) {
     file.close();
     Serial.println(F("Done"));
     SysCall::halt();
   }
-  delayMicroseconds(813); //1000 samples por segundo, para 2kHz -> delayMicroseconds(326)
+  if (millis() >= prevmili + 3000 & l == 0) {
+    prevmili = millis();
+    if (cont < 6) {
+      l = 1;
+    }
+    else {
+      l = 2;
+    }
+    cont++;
+  }
+  else if (millis() >= prevmili + 5000 & l == 1) {
+    prevmili = millis();
+    l = 0;
+  }
+  delayMicroseconds(773); //773 1000 samples por segundo, para 2kHz -> delayMicroseconds(293)
   i++;
 }
